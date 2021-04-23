@@ -6,6 +6,9 @@
 #[macro_use]
 extern crate serde_big_array;
 
+#[macro_use]
+extern crate tracing;
+
 big_array! { BigArray; 96 }
 
 // ---
@@ -37,10 +40,12 @@ pub use lease::*;
 mod remote_forwarder;
 pub use remote_forwarder::*;
 
+pub mod protocols;
+
 pub use ockam_core::async_trait::async_trait as async_worker;
 pub use ockam_core::{
-    Address, Any, Encoded, Error, Message, Result, Route, Routed, RouterMessage, TransportMessage,
-    Worker,
+    Address, Any, Encoded, Error, Message, ProtocolId, Result, Route, Routed, RouterMessage,
+    TransportMessage, Worker,
 };
 
 pub use ockam_vault_sync_core::Vault;
