@@ -66,4 +66,14 @@ defmodule Ockam.Protocol do
 
     BareExtended.decode(data, schema)
   end
+
+  @spec decode_payload(protocol_mod :: module(), direction(), data :: binary()) :: any()
+  def decode_payload(protocol_mod, direction, data) do
+    case base_decode(data) do
+      {:ok, %{protocol: _name, data: protocol_data}} ->
+        decode(protocol_mod, direction, protocol_data)
+      other ->
+        raise("Decode error: #{other}")
+    end
+  end
 end

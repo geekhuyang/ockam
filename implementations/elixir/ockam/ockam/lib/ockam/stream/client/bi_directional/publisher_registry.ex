@@ -46,7 +46,12 @@ defmodule Ockam.Stream.Client.BiDirectional.PublisherRegistry do
         {:reply, {:ok, address}, state}
 
       :error ->
-        {:ok, address} = PublisherProxy.create(options)
+        {consumer_stream, publisher_stream, subscription_id} = publisher_id
+        {:ok, address} = PublisherProxy.create([
+            consumer_stream: consumer_stream,
+            publisher_stream: publisher_stream,
+            subscription_id: subscription_id,
+            stream_options: options])
         :ok = save_publisher(publisher_id, address)
         {:reply, {:ok, address}, state}
     end

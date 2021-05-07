@@ -12,14 +12,9 @@ defmodule Ockam.Stream.Client.BiDirectional do
 
   @transport_message_encoder Ockam.Wire.Binary.V2
 
-  def subscribe(options) do
-    stream_name = Keyword.fetch!(options, :stream_name)
-    ## TODO: add node identity here
-    subscription_id = Keyword.get(options, :subscription_id, "default")
-    stream_options = Keyword.fetch!(options, :stream_options)
-
+  def subscribe(stream_name, subscription_id \\ "default", stream_options) do
     message_handler = fn data ->
-      handle_message(data, options)
+      handle_message(data, stream_name, subscription_id, stream_options)
     end
 
     consumer_options =
@@ -33,20 +28,15 @@ defmodule Ockam.Stream.Client.BiDirectional do
     {:ok, _consumer_address} = Consumer.create(consumer_options)
   end
 
-  def handle_message(data, options) do
-    consumer_stream_name = Keyword.fetch!(options, :stream_name)
-    ## TODO: add node identity here
-    subscription_id = Keyword.get(options, :subscription_id, "default")
-    stream_options = Keyword.fetch!(options, :stream_options)
-
-    {:ok, %{return_stream: publisher_stream_name, message: message}} = decode_message(data)
+  def handle_message(data, consumer_stream, subscription_id, stream_options) do
+    {:ok, %{return_stream: publisher_stream, message: message}} = decode_message(data)
 
     {:ok, publisher_address} =
       ensure_publisher(
-        consumer_stream: consumer_stream_name,
-        publisher_stream: publisher_stream_name,
-        subscription_id: subscription_id,
-        stream_options: stream_options
+        consumer_stream,
+        publisher_stream,
+        subscription_id,
+        stream_options
       )
 
     forwarded_message = %{
@@ -57,11 +47,7 @@ defmodule Ockam.Stream.Client.BiDirectional do
     Ockam.Router.route(forwarded_message)
   end
 
-  def ensure_publisher(options) do
-    consumer_stream = Keyword.fetch!(options, :consumer_stream)
-    publisher_stream = Keyword.fetch!(options, :publisher_stream)
-    subscription_id = Keyword.get(options, :subscription_id, "default")
-
+  def ensure_publisher(consumer_stream, publisher_stream, subscription_id \\ "default", options) do
     publisher_id = {consumer_stream, publisher_stream, subscription_id}
 
     ## TODO: make it a part of consumer
